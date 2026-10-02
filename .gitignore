@@ -1,0 +1,15 @@
+# secrets / local config
+.env
+.env.*
+!.env.example
+# build output
+flink/target/
+**/__pycache__/
+*.pyc
+.venv/
+airflow/logs/
+# editors / OS
+.DS_Store
+.idea/
+.vscode/
+.obsidian/workspace*.json

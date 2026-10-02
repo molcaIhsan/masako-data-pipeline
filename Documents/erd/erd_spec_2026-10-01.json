@@ -1,0 +1,3200 @@
+{
+  "source": "https://www.figma.com/board/Z7QhV7NQK6uQKGfWUftk4W/FigJam-Brainstorm-Dx?node-id=1054-5558",
+  "title": "MolcaDx ERD — from specs (DOCS-EN + PRODUCTION DOCS), 2026-10-01",
+  "tables": [
+    {
+      "name": "asset_state_log",
+      "domain": "PRODUCTION",
+      "module": "PROD · MON",
+      "columns": [
+        {
+          "type": "id",
+          "name": "(row id — name TBD)",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "asset_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK — from asset_placement at event time"
+        },
+        {
+          "type": "id",
+          "name": "shift_instance_id",
+          "notes": "FK"
+        },
+        {
+          "type": "enum",
+          "name": "state",
+          "notes": "running, idle, down, setup"
+        },
+        {
+          "type": "id",
+          "name": "downtime_reason_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "enum",
+          "name": "source",
+          "notes": "plc, manual, derived"
+        },
+        {
+          "type": "timestamptz",
+          "name": "started_at",
+          "notes": ""
+        },
+        {
+          "type": "timestamptz",
+          "name": "ended_at",
+          "notes": "nullable"
+        },
+        {
+          "type": "string",
+          "name": "entered_by",
+          "notes": "conditional — manual / reason set"
+        },
+        {
+          "type": "timestamp",
+          "name": "entered_at",
+          "notes": "conditional"
+        }
+      ]
+    },
+    {
+      "name": "work_order_operation_defect",
+      "domain": "PRODUCTION",
+      "module": "PROD · PLN",
+      "columns": [
+        {
+          "type": "id",
+          "name": "wo_operation_defect_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "wo_operation_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "defect_code_id",
+          "notes": "FK → reject_reason"
+        },
+        {
+          "type": "enum",
+          "name": "disposition",
+          "notes": "scrap, rework, hold"
+        },
+        {
+          "type": "numeric",
+          "name": "qty",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "enum",
+          "name": "origin",
+          "notes": "sensor, manual_override, manual"
+        },
+        {
+          "type": "string",
+          "name": "entered_by",
+          "notes": ""
+        },
+        {
+          "type": "timestamp",
+          "name": "entered_at",
+          "notes": ""
+        },
+        {
+          "type": "timestamp",
+          "name": "recorded_at",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "work_order_operation_lot",
+      "domain": "PRODUCTION",
+      "module": "PROD · PLN",
+      "columns": [
+        {
+          "type": "id",
+          "name": "wo_operation_lot_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "wo_operation_id",
+          "notes": "FK"
+        },
+        {
+          "type": "enum",
+          "name": "direction",
+          "notes": "consumed, produced"
+        },
+        {
+          "type": "string",
+          "name": "lot_id",
+          "notes": "future Inventory FK"
+        },
+        {
+          "type": "numeric",
+          "name": "qty",
+          "notes": "conditional — produced, on close"
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK, conditional"
+        },
+        {
+          "type": "timestamp",
+          "name": "started_at",
+          "notes": "conditional"
+        },
+        {
+          "type": "timestamp",
+          "name": "ended_at",
+          "notes": "nullable — empty = open"
+        },
+        {
+          "type": "enum",
+          "name": "closed_by",
+          "notes": "lot_marker, operator, product_change, job_end"
+        },
+        {
+          "type": "string",
+          "name": "entered_by",
+          "notes": ""
+        },
+        {
+          "type": "timestamp",
+          "name": "entered_at",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "work_order_operation",
+      "domain": "PRODUCTION",
+      "module": "PROD · PLN",
+      "columns": [
+        {
+          "type": "id",
+          "name": "wo_operation_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "work_order_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "shift_instance_id",
+          "notes": "FK"
+        },
+        {
+          "type": "numeric",
+          "name": "good_qty",
+          "notes": ""
+        },
+        {
+          "type": "numeric",
+          "name": "scrap_qty",
+          "notes": "derived"
+        },
+        {
+          "type": "numeric",
+          "name": "rework_qty",
+          "notes": "derived"
+        },
+        {
+          "type": "timestamp",
+          "name": "actual_start",
+          "notes": ""
+        },
+        {
+          "type": "timestamp",
+          "name": "actual_end",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "status",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "work_order",
+      "domain": "PRODUCTION",
+      "module": "PROD · PLN",
+      "columns": [
+        {
+          "type": "id",
+          "name": "work_order_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "wo_number",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "product_flow_id",
+          "notes": "FK — released flow, default primary"
+        },
+        {
+          "type": "id",
+          "name": "routing_id",
+          "notes": "FK — one released version (lock)"
+        },
+        {
+          "type": "id",
+          "name": "bom_id",
+          "notes": "FK — one released version (lock)"
+        },
+        {
+          "type": "numeric",
+          "name": "planned_qty",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "timestamp",
+          "name": "planned_start",
+          "notes": ""
+        },
+        {
+          "type": "timestamp",
+          "name": "planned_end",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "status",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "priority",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "source_system",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "asset_component_link",
+      "domain": "MAINTENANCE",
+      "module": "MNT · AST",
+      "columns": [
+        {
+          "type": "id",
+          "name": "child_asset_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "parent_asset_id",
+          "notes": "FK"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "pm_procedure",
+      "domain": "MAINTENANCE",
+      "module": "MNT · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "pm_procedure_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "asset_type_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "procedure_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "procedure_name",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "interval_basis",
+          "notes": ""
+        },
+        {
+          "type": "int",
+          "name": "interval_value",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "pm_procedure_step",
+      "domain": "MAINTENANCE",
+      "module": "MNT · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "pm_step_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "pm_procedure_id",
+          "notes": "FK"
+        },
+        {
+          "type": "int",
+          "name": "step_number",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "description",
+          "notes": ""
+        },
+        {
+          "type": "numeric",
+          "name": "estimated_duration",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "site_class",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "site_class_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "area_class",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "area_class_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "work_center_class",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "work_center_class_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "work_unit_class",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "work_unit_class_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "equipment_flow",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "equipment_flow_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "work_center_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "from_work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "to_work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "work_unit_flow",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "work_unit_flow_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "from_work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "to_work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "tenant",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "tenant_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "tenant_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "tenant_name",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "keycloak_org_id",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "enterprise",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "enterprise_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "tenant_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "enterprise_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "enterprise_name",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "site",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "site_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "enterprise_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "site_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "site_name",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "timezone",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "site_class_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "area",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "area_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "site_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "area_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "area_name",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "area_class_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "work_center",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "work_center_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "area_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "work_center_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "work_center_name",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "type",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "work_center_class_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "work_unit",
+      "domain": "FOUNDATION",
+      "module": "FND · SIT",
+      "columns": [
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "work_center_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "work_unit_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "work_unit_name",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "work_unit_class_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "fiscal_year",
+      "domain": "FOUNDATION",
+      "module": "FND · FYR",
+      "columns": [
+        {
+          "type": "id",
+          "name": "fiscal_year_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "enterprise_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "fiscal_year_label",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "calendar_basis",
+          "notes": "monthly, weekly_iso"
+        },
+        {
+          "type": "int",
+          "name": "start_month",
+          "notes": ""
+        },
+        {
+          "type": "int",
+          "name": "end_month",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "start_date",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "end_date",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "period_pattern",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "enterprise_shift",
+      "domain": "FOUNDATION",
+      "module": "FND · SHF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "enterprise_shift_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "enterprise_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "shift_label",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "site_shift",
+      "domain": "FOUNDATION",
+      "module": "FND · SHF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "site_shift_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "site_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "enterprise_shift_id",
+          "notes": "FK"
+        },
+        {
+          "type": "time",
+          "name": "start_time",
+          "notes": ""
+        },
+        {
+          "type": "time",
+          "name": "end_time",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "shift_instance",
+      "domain": "FOUNDATION",
+      "module": "FND · SHF (gen. by PROD)",
+      "columns": [
+        {
+          "type": "id",
+          "name": "shift_instance_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "site_shift_id",
+          "notes": "FK"
+        },
+        {
+          "type": "date",
+          "name": "business_date",
+          "notes": ""
+        },
+        {
+          "type": "datetime",
+          "name": "start_datetime",
+          "notes": ""
+        },
+        {
+          "type": "datetime",
+          "name": "end_datetime",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "status",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "data_source",
+      "domain": "FOUNDATION",
+      "module": "FND · DSR",
+      "columns": [
+        {
+          "type": "id",
+          "name": "data_source_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "site_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "protocol",
+          "notes": "mqtt, opcua"
+        },
+        {
+          "type": "enum",
+          "name": "node_naming",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "namespace_uri",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "topic_root",
+          "notes": "nullable (MQTT)"
+        },
+        {
+          "type": "key-value",
+          "name": "connection_config",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "kpi_result",
+      "domain": "FOUNDATION",
+      "module": "FND · KPI",
+      "columns": [
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "enum",
+          "name": "metric",
+          "notes": "oee, availability, …"
+        },
+        {
+          "type": "ref",
+          "name": "period",
+          "notes": "shift_instance_id or date range"
+        },
+        {
+          "type": "numeric",
+          "name": "value",
+          "notes": "nullable"
+        },
+        {
+          "type": "enum",
+          "name": "status",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "source_tier",
+          "notes": "plc, manual, derived"
+        },
+        {
+          "type": "timestamp",
+          "name": "binding_effective_at",
+          "notes": ""
+        },
+        {
+          "type": "bool",
+          "name": "is_provisional",
+          "notes": ""
+        },
+        {
+          "type": "bool",
+          "name": "is_anomaly",
+          "notes": ""
+        },
+        {
+          "type": "list",
+          "name": "inputs_used",
+          "notes": ""
+        },
+        {
+          "type": "list",
+          "name": "waterfall",
+          "notes": "type TBD"
+        },
+        {
+          "type": "enum",
+          "name": "aggregation_level",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "aggregation_method",
+          "notes": ""
+        },
+        {
+          "type": "timestamp",
+          "name": "computed_at",
+          "notes": "PROD-owned"
+        },
+        {
+          "type": "bool",
+          "name": "is_stale",
+          "notes": "PROD-owned"
+        }
+      ]
+    },
+    {
+      "name": "kpi_formula_slot",
+      "domain": "FOUNDATION",
+      "module": "FND · KPI",
+      "columns": [
+        {
+          "type": "string",
+          "name": "slot_id",
+          "notes": "PK"
+        },
+        {
+          "type": "enum",
+          "name": "domain",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "metric",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "iso_element",
+          "notes": "nullable"
+        },
+        {
+          "type": "bool",
+          "name": "bindable",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "kpi_parameters",
+      "domain": "FOUNDATION",
+      "module": "FND · KPI",
+      "columns": [
+        {
+          "type": "id",
+          "name": "parameter_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "slot_id",
+          "notes": "FK"
+        },
+        {
+          "type": "enum",
+          "name": "tag_role",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "transform",
+          "notes": ""
+        },
+        {
+          "type": "int",
+          "name": "rank",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "work_unit_kpi_binding",
+      "domain": "FOUNDATION",
+      "module": "FND · KPI",
+      "columns": [
+        {
+          "type": "id",
+          "name": "binding_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "slot_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "asset_tag_id",
+          "notes": "FK"
+        },
+        {
+          "type": "enum",
+          "name": "transform",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "second_asset_tag_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "asset_placement",
+      "domain": "FOUNDATION",
+      "module": "FND · AST",
+      "columns": [
+        {
+          "type": "id",
+          "name": "asset_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "enum",
+          "name": "placement_role",
+          "notes": "primary, secondary"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "asset_class",
+      "domain": "FOUNDATION",
+      "module": "FND · AST",
+      "columns": [
+        {
+          "type": "id",
+          "name": "asset_class_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "parent_class_id",
+          "notes": "FK (self), nullable"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "asset_type",
+      "domain": "FOUNDATION",
+      "module": "FND · AST",
+      "columns": [
+        {
+          "type": "id",
+          "name": "asset_type_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "asset_class_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "manufacturer",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "model",
+          "notes": ""
+        },
+        {
+          "type": "key-value",
+          "name": "attributes",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "asset",
+      "domain": "FOUNDATION",
+      "module": "FND · AST",
+      "columns": [
+        {
+          "type": "id",
+          "name": "asset_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "asset_tag",
+          "notes": "UQ"
+        },
+        {
+          "type": "string",
+          "name": "asset_name",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "asset_type_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "string",
+          "name": "serial_number",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "parent_asset_id",
+          "notes": "FK (self), nullable"
+        },
+        {
+          "type": "enum",
+          "name": "component_level",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "lifecycle_status",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "commissioning_date",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "owner_org_unit_id",
+          "notes": "FK → ? (open)"
+        },
+        {
+          "type": "key-value",
+          "name": "attributes",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "asset_tags",
+      "domain": "FOUNDATION",
+      "module": "FND · AST",
+      "columns": [
+        {
+          "type": "id",
+          "name": "tag_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "asset_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "data_source_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK, conditional"
+        },
+        {
+          "type": "string",
+          "name": "tag_name",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "node",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "generated_node",
+          "notes": "derived"
+        },
+        {
+          "type": "enum",
+          "name": "kind",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "tag_role",
+          "notes": "incl. activity_signal, lot_marker"
+        },
+        {
+          "type": "id",
+          "name": "reject_reason_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "id",
+          "name": "downtime_reason_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "enum",
+          "name": "count_basis",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "count_side",
+          "notes": "conditional — output, input"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "asset_product_codes",
+      "domain": "FOUNDATION",
+      "module": "FND · AST",
+      "columns": [
+        {
+          "type": "id",
+          "name": "asset_product_code_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "tag_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "raw_value",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "FK"
+        },
+        {
+          "type": "timestamptz",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "timestamptz",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "downtime_reason",
+      "domain": "FOUNDATION",
+      "module": "FND · REF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "downtime_reason_id",
+          "notes": "PK"
+        },
+        {
+          "type": "enum",
+          "name": "downtime_category",
+          "notes": "unplanned, planned, small_stop"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "downtime_reason_asset",
+      "domain": "FOUNDATION",
+      "module": "FND · REF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "downtime_reason_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "asset_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "downtime_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "asset_tag",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "reject_reason",
+      "domain": "FOUNDATION",
+      "module": "FND · REF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "reject_reason_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "reject_reason_asset",
+      "domain": "FOUNDATION",
+      "module": "FND · REF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "reject_reason_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "asset_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "reject_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "asset_tag",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "routing",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "routing_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "flow_id",
+          "notes": "FK → product_flow"
+        },
+        {
+          "type": "id",
+          "name": "work_center_id",
+          "notes": "FK"
+        },
+        {
+          "type": "int",
+          "name": "version",
+          "notes": "per flow + work center"
+        },
+        {
+          "type": "enum",
+          "name": "status",
+          "notes": "draft, released, retired"
+        },
+        {
+          "type": "bool",
+          "name": "is_primary",
+          "notes": "max one per flow + work center"
+        },
+        {
+          "type": "bool",
+          "name": "enforce_sequence",
+          "notes": "default false"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "operation",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "routing_id",
+          "notes": "FK"
+        },
+        {
+          "type": "int",
+          "name": "step_number",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "step_name",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "step_type",
+          "notes": "free text, nullable"
+        },
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK, conditional"
+        },
+        {
+          "type": "id",
+          "name": "required_work_unit_class_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "cycle_time_value",
+          "notes": "discrete/batch"
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK, nullable — item unit, never time"
+        },
+        {
+          "type": "id",
+          "name": "time_conversion_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "int",
+          "name": "batch_size",
+          "notes": ""
+        },
+        {
+          "type": "numeric",
+          "name": "standard_speed_value",
+          "notes": "continuous"
+        },
+        {
+          "type": "id",
+          "name": "speed_uom_id",
+          "notes": "FK, nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "standard_setup_time",
+          "notes": "nullable"
+        },
+        {
+          "type": "id",
+          "name": "setup_time_conversion_id",
+          "notes": "FK, conditional"
+        },
+        {
+          "type": "int",
+          "name": "crew_size",
+          "notes": "nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "planned_shrinkage",
+          "notes": "fraction, nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "yield_min_pct",
+          "notes": "nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "yield_max_pct",
+          "notes": "nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "max_hold_time",
+          "notes": "nullable, > 0"
+        },
+        {
+          "type": "id",
+          "name": "hold_time_conversion_id",
+          "notes": "FK, conditional"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "bom",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "bom_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "flow_id",
+          "notes": "FK → product_flow"
+        },
+        {
+          "type": "int",
+          "name": "version",
+          "notes": "per flow"
+        },
+        {
+          "type": "enum",
+          "name": "status",
+          "notes": "draft, released, retired"
+        },
+        {
+          "type": "numeric",
+          "name": "base_qty",
+          "notes": "default 1 — recipe base"
+        },
+        {
+          "type": "id",
+          "name": "base_uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "bool",
+          "name": "is_phantom",
+          "notes": "default false — semi_finished only"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "bom_line",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "bom_line_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "bom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "component_product_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "FK, nullable — empty = first step"
+        },
+        {
+          "type": "enum",
+          "name": "line_use",
+          "notes": "consumed, produced"
+        },
+        {
+          "type": "bool",
+          "name": "is_primary_output",
+          "notes": "conditional — produced only"
+        },
+        {
+          "type": "numeric",
+          "name": "qty_per_unit",
+          "notes": "per bom.base_qty, net"
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "numeric",
+          "name": "scrap_factor",
+          "notes": "fraction ≥ 0, optional"
+        },
+        {
+          "type": "enum",
+          "name": "dispense_tolerance_type",
+          "notes": "nullable — percent, absolute"
+        },
+        {
+          "type": "numeric",
+          "name": "dispense_tolerance_value",
+          "notes": "conditional"
+        }
+      ]
+    },
+    {
+      "name": "product",
+      "domain": "FOUNDATION",
+      "module": "FND · PRO",
+      "columns": [
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "product_type",
+          "notes": "raw_material, packaging, consumable, semi_finished, finished_good"
+        },
+        {
+          "type": "enum",
+          "name": "packaging_level",
+          "notes": "primary, secondary — packaging only"
+        },
+        {
+          "type": "id",
+          "name": "base_uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "product_detail",
+      "domain": "FOUNDATION",
+      "module": "FND · PRO",
+      "columns": [
+        {
+          "type": "id",
+          "name": "product_detail_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "FK, UQ (1:1)"
+        },
+        {
+          "type": "numeric",
+          "name": "min_weight",
+          "notes": ""
+        },
+        {
+          "type": "numeric",
+          "name": "max_weight",
+          "notes": ""
+        },
+        {
+          "type": "numeric",
+          "name": "standard_weight",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "weight_uom_id",
+          "notes": "FK — mass group only"
+        },
+        {
+          "type": "numeric",
+          "name": "length",
+          "notes": "nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "width",
+          "notes": "nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "height",
+          "notes": "nullable"
+        },
+        {
+          "type": "string",
+          "name": "barcode",
+          "notes": ""
+        },
+        {
+          "type": "bool",
+          "name": "is_batch_tracked",
+          "notes": ""
+        },
+        {
+          "type": "int",
+          "name": "shelf_life_days",
+          "notes": "nullable"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "product_uom_conversion",
+      "domain": "FOUNDATION",
+      "module": "FND · PRO",
+      "columns": [
+        {
+          "type": "id",
+          "name": "product_uom_conversion_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "from_uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "to_uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "numeric",
+          "name": "conversion_value",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "unit_of_measurements",
+      "domain": "FOUNDATION",
+      "module": "FND · REF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "unit",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "measurement_group_id",
+          "notes": "FK"
+        }
+      ]
+    },
+    {
+      "name": "measurement_group",
+      "domain": "FOUNDATION",
+      "module": "FND · REF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "measurement_group_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": "count, mass, volume, …"
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "time_conversions",
+      "domain": "FOUNDATION",
+      "module": "FND · REF",
+      "columns": [
+        {
+          "type": "id",
+          "name": "time_conversions_id",
+          "notes": "PK"
+        },
+        {
+          "type": "string",
+          "name": "code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "name",
+          "notes": ""
+        },
+        {
+          "type": "numeric",
+          "name": "seconds_per_unit",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "audit_log",
+      "domain": "FOUNDATION",
+      "module": "FND · AUD",
+      "columns": [
+        {
+          "type": "id",
+          "name": "audit_log_id",
+          "notes": "PK"
+        },
+        {
+          "type": "timestamp",
+          "name": "occurred_at",
+          "notes": "UTC"
+        },
+        {
+          "type": "string",
+          "name": "domain_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "module_code",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "action",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "entity_type",
+          "notes": "polymorphic"
+        },
+        {
+          "type": "id",
+          "name": "entity_id",
+          "notes": "no hard FK"
+        },
+        {
+          "type": "string",
+          "name": "entity_code",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "previous_version_entity_id",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "effective_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "effective_to",
+          "notes": ""
+        },
+        {
+          "type": "list",
+          "name": "changes",
+          "notes": "{field, before, after}"
+        },
+        {
+          "type": "string",
+          "name": "reason",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "source",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "import_batch_id",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "transaction_id",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "actor_type",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "actor_subject_id",
+          "notes": "IDP sub"
+        },
+        {
+          "type": "string",
+          "name": "actor_display_name",
+          "notes": ""
+        },
+        {
+          "type": "id",
+          "name": "tenant_id",
+          "notes": ""
+        },
+        {
+          "type": "enum",
+          "name": "scope_level",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "name": "product_flow",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "product_flow_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "product_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "flow_code",
+          "notes": "UQ per product"
+        },
+        {
+          "type": "string",
+          "name": "flow_name",
+          "notes": ""
+        },
+        {
+          "type": "bool",
+          "name": "is_primary",
+          "notes": "one per product on any date"
+        },
+        {
+          "type": "enum",
+          "name": "status",
+          "notes": "draft, released, retired"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "operation_work_unit",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "operation_work_unit_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "FK"
+        },
+        {
+          "type": "id",
+          "name": "work_unit_id",
+          "notes": "FK"
+        },
+        {
+          "type": "numeric",
+          "name": "cycle_time_value",
+          "notes": "nullable — station override"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "operation_dependency",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "operation_dependency_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "FK — the step that waits"
+        },
+        {
+          "type": "id",
+          "name": "predecessor_operation_id",
+          "notes": "FK — same routing, no loops"
+        }
+      ]
+    },
+    {
+      "name": "operation_parameter",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "operation_parameter_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "FK"
+        },
+        {
+          "type": "string",
+          "name": "parameter_name",
+          "notes": "UQ per step"
+        },
+        {
+          "type": "numeric",
+          "name": "target_value",
+          "notes": "nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "min_value",
+          "notes": "nullable"
+        },
+        {
+          "type": "numeric",
+          "name": "max_value",
+          "notes": "nullable (≥1 of target/min/max)"
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK"
+        },
+        {
+          "type": "bool",
+          "name": "is_critical",
+          "notes": "CPP, default false"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "operation_instruction",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "operation_instruction_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "FK"
+        },
+        {
+          "type": "int",
+          "name": "sequence",
+          "notes": "UQ per step"
+        },
+        {
+          "type": "string",
+          "name": "instruction_text",
+          "notes": "text, max length TBD"
+        },
+        {
+          "type": "bool",
+          "name": "requires_confirmation",
+          "notes": "default false"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    },
+    {
+      "name": "operation_check",
+      "domain": "FOUNDATION",
+      "module": "FND · WMS",
+      "columns": [
+        {
+          "type": "id",
+          "name": "operation_check_id",
+          "notes": "PK"
+        },
+        {
+          "type": "id",
+          "name": "operation_id",
+          "notes": "FK"
+        },
+        {
+          "type": "int",
+          "name": "sequence",
+          "notes": ""
+        },
+        {
+          "type": "string",
+          "name": "check_name",
+          "notes": "UQ per step"
+        },
+        {
+          "type": "enum",
+          "name": "value_type",
+          "notes": "numeric, pass_fail, text"
+        },
+        {
+          "type": "numeric",
+          "name": "target_value",
+          "notes": "nullable — numeric only"
+        },
+        {
+          "type": "numeric",
+          "name": "min_value",
+          "notes": "conditional"
+        },
+        {
+          "type": "numeric",
+          "name": "max_value",
+          "notes": "conditional"
+        },
+        {
+          "type": "id",
+          "name": "uom_id",
+          "notes": "FK, conditional — numeric only"
+        },
+        {
+          "type": "int",
+          "name": "sample_count",
+          "notes": "default 1"
+        },
+        {
+          "type": "enum",
+          "name": "frequency_type",
+          "notes": "once, start_middle_end, interval"
+        },
+        {
+          "type": "numeric",
+          "name": "frequency_interval_value",
+          "notes": "conditional — interval"
+        },
+        {
+          "type": "id",
+          "name": "frequency_interval_conversion_id",
+          "notes": "FK, conditional"
+        },
+        {
+          "type": "bool",
+          "name": "is_critical",
+          "notes": "default false, not on text"
+        },
+        {
+          "type": "date",
+          "name": "valid_from",
+          "notes": ""
+        },
+        {
+          "type": "date",
+          "name": "valid_to",
+          "notes": "nullable"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "child": "enterprise",
+      "fk": "tenant_id",
+      "parent": "tenant"
+    },
+    {
+      "child": "site",
+      "fk": "enterprise_id",
+      "parent": "enterprise"
+    },
+    {
+      "child": "area",
+      "fk": "site_id",
+      "parent": "site"
+    },
+    {
+      "child": "work_center",
+      "fk": "area_id",
+      "parent": "area"
+    },
+    {
+      "child": "work_unit",
+      "fk": "work_center_id",
+      "parent": "work_center"
+    },
+    {
+      "child": "site_shift",
+      "fk": "enterprise_shift_id",
+      "parent": "enterprise_shift"
+    },
+    {
+      "child": "shift_instance",
+      "fk": "site_shift_id",
+      "parent": "site_shift"
+    },
+    {
+      "child": "kpi_parameters",
+      "fk": "slot_id",
+      "parent": "kpi_formula_slot"
+    },
+    {
+      "child": "work_unit_kpi_binding",
+      "fk": "slot_id",
+      "parent": "kpi_formula_slot"
+    },
+    {
+      "child": "asset_class",
+      "fk": "parent_class_id",
+      "parent": "asset_class"
+    },
+    {
+      "child": "asset_type",
+      "fk": "asset_class_id",
+      "parent": "asset_class"
+    },
+    {
+      "child": "asset",
+      "fk": "asset_type_id",
+      "parent": "asset_type"
+    },
+    {
+      "child": "asset",
+      "fk": "parent_asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "asset_tags",
+      "fk": "asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "asset_product_codes",
+      "fk": "tag_id",
+      "parent": "asset_tags"
+    },
+    {
+      "child": "downtime_reason_asset",
+      "fk": "downtime_reason_id",
+      "parent": "downtime_reason"
+    },
+    {
+      "child": "reject_reason_asset",
+      "fk": "reject_reason_id",
+      "parent": "reject_reason"
+    },
+    {
+      "child": "pm_procedure_step",
+      "fk": "pm_procedure_id",
+      "parent": "pm_procedure"
+    },
+    {
+      "child": "work_order",
+      "fk": "product_flow_id",
+      "parent": "product_flow"
+    },
+    {
+      "child": "work_order_operation",
+      "fk": "operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "work_order_operation_defect",
+      "fk": "defect_code_id",
+      "parent": "reject_reason"
+    },
+    {
+      "child": "asset_state_log",
+      "fk": "asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "operation",
+      "fk": "routing_id",
+      "parent": "routing"
+    },
+    {
+      "child": "bom_line",
+      "fk": "bom_id",
+      "parent": "bom"
+    },
+    {
+      "child": "bom_line",
+      "fk": "operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "product",
+      "fk": "base_uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "product_detail",
+      "fk": "product_id",
+      "parent": "product"
+    },
+    {
+      "child": "product_detail",
+      "fk": "weight_uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "product_uom_conversion",
+      "fk": "product_id",
+      "parent": "product"
+    },
+    {
+      "child": "product_uom_conversion",
+      "fk": "from_uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "product_uom_conversion",
+      "fk": "to_uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "unit_of_measurements",
+      "fk": "measurement_group_id",
+      "parent": "measurement_group"
+    },
+    {
+      "child": "site",
+      "fk": "site_class_id",
+      "parent": "site_class"
+    },
+    {
+      "child": "area",
+      "fk": "area_class_id",
+      "parent": "area_class"
+    },
+    {
+      "child": "work_center",
+      "fk": "work_center_class_id",
+      "parent": "work_center_class"
+    },
+    {
+      "child": "work_unit",
+      "fk": "work_unit_class_id",
+      "parent": "work_unit_class"
+    },
+    {
+      "child": "equipment_flow",
+      "fk": "work_center_id",
+      "parent": "work_center"
+    },
+    {
+      "child": "equipment_flow",
+      "fk": "from_work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "equipment_flow",
+      "fk": "to_work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "work_unit_flow",
+      "fk": "from_work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "work_unit_flow",
+      "fk": "to_work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "fiscal_year",
+      "fk": "enterprise_id",
+      "parent": "enterprise"
+    },
+    {
+      "child": "enterprise_shift",
+      "fk": "enterprise_id",
+      "parent": "enterprise"
+    },
+    {
+      "child": "site_shift",
+      "fk": "site_id",
+      "parent": "site"
+    },
+    {
+      "child": "data_source",
+      "fk": "site_id",
+      "parent": "site"
+    },
+    {
+      "child": "kpi_result",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "work_unit_kpi_binding",
+      "fk": "asset_tag_id",
+      "parent": "asset_tags"
+    },
+    {
+      "child": "work_unit_kpi_binding",
+      "fk": "second_asset_tag_id",
+      "parent": "asset_tags"
+    },
+    {
+      "child": "asset_placement",
+      "fk": "asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "asset_tags",
+      "fk": "reject_reason_id",
+      "parent": "reject_reason"
+    },
+    {
+      "child": "asset_tags",
+      "fk": "downtime_reason_id",
+      "parent": "downtime_reason"
+    },
+    {
+      "child": "downtime_reason_asset",
+      "fk": "asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "reject_reason_asset",
+      "fk": "asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "asset_component_link",
+      "fk": "child_asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "asset_component_link",
+      "fk": "parent_asset_id",
+      "parent": "asset"
+    },
+    {
+      "child": "pm_procedure",
+      "fk": "asset_type_id",
+      "parent": "asset_type"
+    },
+    {
+      "child": "work_order",
+      "fk": "product_id",
+      "parent": "product"
+    },
+    {
+      "child": "work_order",
+      "fk": "routing_id",
+      "parent": "routing"
+    },
+    {
+      "child": "work_order",
+      "fk": "bom_id",
+      "parent": "bom"
+    },
+    {
+      "child": "work_order",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "work_order_operation",
+      "fk": "work_order_id",
+      "parent": "work_order"
+    },
+    {
+      "child": "work_order_operation_defect",
+      "fk": "wo_operation_id",
+      "parent": "work_order_operation"
+    },
+    {
+      "child": "work_order_operation_lot",
+      "fk": "wo_operation_id",
+      "parent": "work_order_operation"
+    },
+    {
+      "child": "asset_state_log",
+      "fk": "downtime_reason_id",
+      "parent": "downtime_reason"
+    },
+    {
+      "child": "routing",
+      "fk": "flow_id",
+      "parent": "product_flow"
+    },
+    {
+      "child": "operation_work_unit",
+      "fk": "operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "operation_dependency",
+      "fk": "operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "operation_dependency",
+      "fk": "predecessor_operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "operation_parameter",
+      "fk": "operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "operation_parameter",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "operation_instruction",
+      "fk": "operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "operation_check",
+      "fk": "operation_id",
+      "parent": "operation"
+    },
+    {
+      "child": "operation_check",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "operation_check",
+      "fk": "frequency_interval_conversion_id",
+      "parent": "time_conversions"
+    },
+    {
+      "child": "bom",
+      "fk": "flow_id",
+      "parent": "product_flow"
+    },
+    {
+      "child": "product_flow",
+      "fk": "product_id",
+      "parent": "product"
+    },
+    {
+      "child": "work_unit_kpi_binding",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "asset_placement",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "asset_tags",
+      "fk": "data_source_id",
+      "parent": "data_source"
+    },
+    {
+      "child": "asset_state_log",
+      "fk": "shift_instance_id",
+      "parent": "shift_instance"
+    },
+    {
+      "child": "routing",
+      "fk": "product_id",
+      "parent": "product"
+    },
+    {
+      "child": "operation",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "operation",
+      "fk": "time_conversion_id",
+      "parent": "time_conversions"
+    },
+    {
+      "child": "operation",
+      "fk": "speed_uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "operation",
+      "fk": "setup_time_conversion_id",
+      "parent": "time_conversions"
+    },
+    {
+      "child": "operation",
+      "fk": "hold_time_conversion_id",
+      "parent": "time_conversions"
+    },
+    {
+      "child": "bom",
+      "fk": "product_id",
+      "parent": "product"
+    },
+    {
+      "child": "bom",
+      "fk": "base_uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "bom_line",
+      "fk": "component_product_id",
+      "parent": "product"
+    },
+    {
+      "child": "bom_line",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "asset_tags",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "work_order_operation_defect",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "work_order_operation_lot",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "asset_state_log",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "asset_tags",
+      "fk": "uom_id",
+      "parent": "unit_of_measurements"
+    },
+    {
+      "child": "asset_product_codes",
+      "fk": "product_id",
+      "parent": "product"
+    },
+    {
+      "child": "work_order_operation",
+      "fk": "shift_instance_id",
+      "parent": "shift_instance"
+    },
+    {
+      "child": "work_order_operation",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "routing",
+      "fk": "work_center_id",
+      "parent": "work_center"
+    },
+    {
+      "child": "operation",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    },
+    {
+      "child": "operation",
+      "fk": "required_work_unit_class_id",
+      "parent": "work_unit_class"
+    },
+    {
+      "child": "operation_work_unit",
+      "fk": "work_unit_id",
+      "parent": "work_unit"
+    }
+  ]
+}
