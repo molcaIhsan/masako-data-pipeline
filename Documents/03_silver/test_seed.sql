@@ -21,7 +21,7 @@ INSERT INTO asset_tags(tag_id,asset_id,data_source_id,work_unit_id,tag_name,node
  (104,1,1,7,'ng_over_weight','PLC/L1/PCK01/ng_over_weight','cumulative_counter','reject',2,'unit',2,'2026-01-01'),
  (201,2,1,8,'total_count','PLC/L1/CHK01/total_count','cumulative_counter','total',1,'unit',NULL,'2026-01-01'),
  (202,2,1,8,'good_count','PLC/L1/CHK01/good_count','cumulative_counter','good',1,'unit',NULL,'2026-01-01');
-INSERT INTO kpi_formula_slot(slot_id,metric,bindable) VALUES ('availability.downtime_reason','availability',true),('performance.output','performance',true),('quality.total','quality',true),('quality.good','quality',true),('quality.reject','quality',true);
+-- kpi_formula_slot is seeded by ddl_silver.sql
 INSERT INTO work_unit_kpi_binding(work_unit_id,slot_id,asset_tag_id,transform,valid_from) VALUES
  (7,'availability.downtime_reason',101,'stall_bucket','2026-01-01'),(7,'performance.output',101,'none','2026-01-01'),
  (7,'quality.total',101,'none','2026-01-01'),(7,'quality.good',102,'none','2026-01-01'),

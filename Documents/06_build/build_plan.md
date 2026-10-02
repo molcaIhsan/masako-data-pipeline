@@ -3,6 +3,8 @@
 > Implements [[pipeline_contract]] (F1–F16, DAGs A–F) on top of the tested DDL (`ddl_silver.sql` → `ddl_gold.sql` → `ddl_views.sql`).
 > Context: [[silver_model]] · [[gold_model]] · [[editing_model]] · [[app_contract]] · [[flink_rules]] · [[airflow_rules]] · [[objective]].
 > Human in the loop: open questions are in §5. **Blocking** ones must be answered before that phase starts.
+>
+> **Status 2026-10-02:** phases 0–5 built and tested end to end on simulated data (see §6). Waiting for: the real Kafka (`.env`) and real messages (B3).
 
 ## 1. Versions (checked 2026-10-02 against Maven Central / PyPI / Docker Hub)
 
@@ -141,3 +143,27 @@ Status: ☐ todo · ◐ in progress · ☑ done · ⛔ blocked on a question
 | N4 | Telegraf sends a value even when unchanged? | Either works: no increase in any form = stall |
 | N5 | DB roles for least privilege (`flink_silver`, `airflow_gold`) | Create them in the DDL |
 | N6 | Kafka connector 5.0.0-2.2 fails on Flink 2.3 | Fall back to Flink 2.2.1 (same API) |
+
+## 6. Status and what testing taught us (2026-10-02)
+
+| Phase | Status | Evidence |
+|---|---|---|
+| 0 | ☑ | Enum CHECKs + `kpi_formula_slot` seed in `ddl_silver.sql`; `db/roles.sql`; `db/cdc/enable_cdc.{sh,sql}` |
+| 1 | ☑ | `docker/docker-compose.yml`, `tools/telegraf_sim.py` (worked example, edge cases, tail) |
+| 2–3 | ☑ | 24 unit tests (counter, product, parsers, stall) + replay: WU 7 total 24,000 / good 23,520 / reject 6.0 + 3.6 kg; stops 4.5 small, 30 break, 22 with `{Material jam, Film out}` |
+| 4–5 | ☑ | DAGs A–F run green; WU 7 shift 500 **A 95.111 · P 91.121 · Q 98.000 · OEE 84.933**; line good from the final machine; day/month/year rollups; approval freeze holds |
+| 6 | ◐ | Kill / restore from checkpoint ☑, live master change via CDC ☑, replay idempotency ☑. Load test (1,000 tags) and runbook: ☐ |
+
+Fixes found by running it (all in the code now):
+1. Flink CDC 3.6.0-2.2 on Flink 2.3 needs its own **shaded Guava 31, relocated** (`org.apache.flink.*` loads parent-first).
+2. Debezium's JsonConverter targets **kafka-clients 3.x** and breaks next to the Kafka connector's 4.x → our own `MasterChangeDeserializer` (no JsonConverter).
+3. **Whole-job failover** (`jobmanager.execution.failover-strategy: full`): Flink CDC's split assigner fails on regional restart.
+4. The master stream must mark itself **idle** (not emit a max watermark), or event time jumps to infinity when Kafka is quiet.
+5. Event time is assigned **in the Kafka source** (per-partition watermarks); sink batches are **collapsed per key** (an upsert cannot touch a row twice).
+6. `no_data` status: a work-unit shift with no readings and no stops has NULL rates and is excluded from line and period sums (PRD: no data is never 100% availability).
+7. A count without a product (e.g. a checkweigher with no product-code tag) stays in its tag's own unit.
+
+Known limitation: if the machine feed stops mid-shift and never resumes before the report, the rest of the shift has no
+stop decision (event time stands still). When the feed resumes, the gap becomes a stop retroactively and DAG B (72 h)
+reloads the shift.
+

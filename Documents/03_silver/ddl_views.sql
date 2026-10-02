@@ -150,9 +150,13 @@ JOIN silver.product p ON p.product_id = x.product_id;
 -- v_wu_shift_report -> gold.work_unit_shift_report
 -- ---------------------------------------------------------------------
 CREATE VIEW silver.v_wu_shift_report AS
-WITH q AS (   -- sensor quality counts in base uom
-  SELECT v.work_unit_id, v.shift_instance_id, v.slot_id, v.product_id, p.base_uom_id,
-         round(v.qty * silver.fn_uom_factor(v.product_id, v.tag_uom_id, p.base_uom_id, v.business_date), 3) AS qty_base
+WITH q AS (   -- sensor quality counts in base uom; a count with no product (machine without a product code) stays
+              -- in its tag's own unit
+  SELECT v.work_unit_id, v.shift_instance_id, v.slot_id, v.product_id,
+         coalesce(p.base_uom_id, v.tag_uom_id) AS base_uom_id,
+         CASE WHEN v.product_id IS NULL THEN v.qty
+              ELSE round(v.qty * silver.fn_uom_factor(v.product_id, v.tag_uom_id, p.base_uom_id, v.business_date), 3)
+         END AS qty_base
   FROM silver.v_wu_slot_qty v
   LEFT JOIN silver.product p ON p.product_id = v.product_id
   WHERE v.slot_id LIKE 'quality.%'),
@@ -206,7 +210,8 @@ base AS (
               ELSE qa.good_tag END AS good_raw,
          me.rework, s.availability_time,
          coalesce(dt.pdt_time, 0) AS pdt_time, coalesce(dt.updt_time, 0) AS updt_time, coalesce(dt.ms_time, 0) AS ms_time,
-         perf.ideal_ms, perf.ct_missing, coalesce(bd.has_total, false) AS has_total, bd.binding_ids
+         perf.ideal_ms, perf.ct_missing, coalesce(bd.has_total, false) AS has_total, bd.binding_ids,
+         (qa.work_unit_id IS NOT NULL OR dt.work_unit_id IS NOT NULL) AS has_data   -- readings or stops seen
   FROM silver.v_shift_work_unit s
   LEFT JOIN qa   ON qa.work_unit_id = s.work_unit_id AND qa.shift_instance_id = s.shift_instance_id
   LEFT JOIN me   ON me.work_unit_id = s.work_unit_id AND me.shift_instance_id = s.shift_instance_id
@@ -238,11 +243,11 @@ m AS (
 SELECT m.shift_instance_id, m.business_date, m.shift_no, m.shift_label, m.site_id, m.time_zone, m.area_id,
        m.work_center_id, m.work_unit_id, m.work_unit_name, m.work_unit_code,
        m.uom_id, u.name AS uom_name, u.code AS uom_code,
-       round(100.0 * m.value_added_time / nullif(m.availability_time, 0), 3)                         AS teep,
-       round(100.0 * m.value_added_time / nullif(m.production_time, 0), 3)                           AS oee,
-       round(100.0 * m.operating_time / nullif(m.production_time, 0), 3)                             AS availability,
-       CASE WHEN m.net_time > 0 THEN round(100.0 * m.net_time / nullif(m.operating_time, 0), 3) END  AS performance,
-       round(100.0 * m.good_out / nullif(m.total_out_v, 0), 3)                                       AS quality,
+       CASE WHEN m.has_data THEN round(100.0 * m.value_added_time / nullif(m.availability_time, 0), 3) END AS teep,
+       CASE WHEN m.has_data THEN round(100.0 * m.value_added_time / nullif(m.production_time, 0), 3) END   AS oee,
+       CASE WHEN m.has_data THEN round(100.0 * m.operating_time / nullif(m.production_time, 0), 3) END     AS availability,
+       CASE WHEN m.has_data AND m.net_time > 0 THEN round(100.0 * m.net_time / nullif(m.operating_time, 0), 3) END AS performance,
+       CASE WHEN m.has_data THEN round(100.0 * m.good_out / nullif(m.total_out_v, 0), 3) END               AS quality,
        m.total_out_v AS total_out, m.good_out, m.effective_out,
        m.runtime, m.availability_time, m.production_time, m.pdt_time, m.operating_time, m.updt_time,
        m.net_time, m.reduce_speed_time, m.ms_time, m.value_added_time, m.rework_time, m.reject_time,
@@ -253,6 +258,7 @@ SELECT m.shift_instance_id, m.business_date, m.shift_no, m.shift_label, m.site_i
        m.reject, m.rework,
        r.mttr_ms AS mttr, r.mtbf_ms AS mtbf,
        CASE WHEN NOT m.has_total                        THEN 'no_binding'
+            WHEN NOT m.has_data                         THEN 'no_data'
             WHEN m.total_out_v > 0 AND m.net_time IS NULL THEN 'no_cycle_time'
             WHEN NOT coalesce(m.uom_ok, true) OR m.ct_missing THEN 'partial'
             ELSE 'ok' END::varchar(20) AS data_status,
@@ -272,7 +278,8 @@ WITH s AS (
   FROM silver.v_wu_shift_report r
   JOIN silver.shift_instance sh ON sh.shift_instance_id = r.shift_instance_id
   LEFT JOIN LATERAL silver.fn_work_center_final_work_units(r.business_date) f
-         ON f.work_unit_id = r.work_unit_id AND f.work_center_id = r.work_center_id),
+         ON f.work_unit_id = r.work_unit_id AND f.work_center_id = r.work_center_id
+  WHERE r.data_status <> 'no_data'),       -- a machine with no readings and no stops takes no part (PRD: not 100%)
 bids AS (
   SELECT s.shift_instance_id, s.work_center_id, array_agg(DISTINCT b ORDER BY b) AS binding_ids
   FROM s, unnest(s.binding_ids) b GROUP BY 1, 2),

@@ -42,6 +42,7 @@
 | F12 | **`source_event_id`** = deterministic `wu{work_unit_id}-t{tag_id}-{start_at epoch ms}`, unique per piece. Upsert key of `silver.downtime_events`. A replay gives the same ids |
 | F13 | **`product_id` of a stop** = the product running when the stop **started** |
 | F14 | **Dead-letter topic** with a `reason` for: parse error, unknown `source_tag`, asset not placed, no `shift_instance`, late > 1 min. **Never drop silently** |
+| F15a | **Whole-job failover** (`failover-strategy: full`) and the CDC stream marks itself idle (never moves event time) |
 | F15 | **Checkpoints:** RocksDB incremental, about every 1 min, exactly-once state; the sink is at-least-once + idempotent upsert |
 | F16 | **Never** read or apply edit tables. People's edits are applied by the views, not by Flink |
 

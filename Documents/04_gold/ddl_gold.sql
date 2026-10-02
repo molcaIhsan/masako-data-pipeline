@@ -47,7 +47,7 @@ CREATE TABLE gold.report_metrics_template (
     mttr                   bigint,          -- ms; NULL when no closed unplanned stop
     mtbf                   bigint,          -- ms; NULL when fewer than 2 failures
     data_status            varchar(20) NOT NULL DEFAULT 'ok'
-                           CHECK (data_status IN ('ok','no_binding','no_cycle_time','partial')),
+                           CHECK (data_status IN ('ok','no_data','no_binding','no_cycle_time','partial')),   -- no_data: no readings and no stops (PRD: never 100%)
     binding_ids            bigint[],        -- work_unit_kpi_binding rows used (work center: all members')
     computed_at            timestamptz NOT NULL DEFAULT now()
 );

@@ -1446,3 +1446,41 @@ CREATE FUNCTION silver.trg_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
   RAISE EXCEPTION '%.% is an immutable trail: no UPDATE or DELETE', TG_TABLE_SCHEMA, TG_TABLE_NAME;
 END $$;
+
+-- =====================================================================
+-- ENUM CHECKS for values the pipeline depends on (decided 2026-10-02, values from PRD-003; the ERD lists none).
+-- A typo here would silently make Flink or the views skip a tag, so the database refuses it.
+-- =====================================================================
+ALTER TABLE silver.asset_tags ADD CONSTRAINT ck_asset_tags_tag_role CHECK (tag_role IN
+  ('total','good','reject','reject_reason','downtime_reason','machine_state','runtime','speed','activity_signal',
+   'product_code','lot_marker'));
+ALTER TABLE silver.asset_tags ADD CONSTRAINT ck_asset_tags_kind CHECK (kind IN
+  ('boolean','value','cumulative_counter','delta_counter'));
+ALTER TABLE silver.asset_tags ADD CONSTRAINT ck_asset_tags_count_basis CHECK (count_basis IN ('unit','cycle'));
+ALTER TABLE silver.work_unit_kpi_binding ADD CONSTRAINT ck_binding_transform CHECK (transform IN
+  ('none','reason_tag_drives_stop','stall_bucket','range_bucket','reason_match_enrich',
+   'complement_derive','infeed_outfeed_derive','reconcile_check'));
+ALTER TABLE silver.kpi_parameters ADD CONSTRAINT ck_kpi_parameters_transform CHECK (transform IN
+  ('none','reason_tag_drives_stop','stall_bucket','range_bucket','reason_match_enrich',
+   'complement_derive','infeed_outfeed_derive','reconcile_check'));
+ALTER TABLE silver.kpi_parameters ADD CONSTRAINT ck_kpi_parameters_tag_role CHECK (tag_role IN
+  ('total','good','reject','reject_reason','downtime_reason','machine_state','runtime','speed','activity_signal',
+   'product_code','lot_marker'));
+ALTER TABLE silver.shift_instance ADD CONSTRAINT ck_shift_instance_status CHECK (status IN ('open','closed'));
+ALTER TABLE silver.data_source ADD CONSTRAINT ck_data_source_node_naming CHECK (node_naming IN ('generated','manual'));
+ALTER TABLE silver.work_center ADD CONSTRAINT ck_work_center_type CHECK (type IN
+  ('production_line','process_cell','production_unit','storage_zone'));
+ALTER TABLE silver.asset ADD CONSTRAINT ck_asset_component_level CHECK (component_level IN
+  ('equipment_unit','subunit','maintainable_item','part'));
+
+-- KPI formula slots: seeded, fixed (PRD KPI-007; not plant-editable)
+INSERT INTO silver.kpi_formula_slot (slot_id, domain, metric, iso_element, bindable) VALUES
+  ('availability.downtime_reason', 'production', 'availability', 'downtime',           true),
+  ('performance.output',           'production', 'performance',  'PQ',                 true),
+  ('performance.product_code',     'production', 'performance',  'product',            true),
+  ('quality.total',                'production', 'quality',      'PQ',                 true),
+  ('quality.good',                 'production', 'quality',      'GQ',                 true),
+  ('quality.reject',               'production', 'quality',      'SQ',                 true),
+  ('reliability.interval',         'production', 'mttr',         NULL,                 false),
+  ('rework.output',                'production', 'rework_ratio', 'RWQ',                false),
+  ('throughput.order_execution_time','production','throughput_rate','AOET',            false);

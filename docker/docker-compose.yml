@@ -1,0 +1,109 @@
+# Dev / test stack. Production uses the same images with the real Kafka from .env.
+#   docker compose --env-file ../.env up -d                 (DB + Flink + Airflow)
+#   docker compose --env-file ../.env --profile sim up -d   (+ a local Kafka for simulated data)
+name: masako
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10",
+              "-c", "timezone=UTC"]
+    environment:
+      POSTGRES_DB: ${PG_DATABASE}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      FLINK_PG_PASSWORD: ${FLINK_PG_PASSWORD}
+      AIRFLOW_PG_PASSWORD: ${AIRFLOW_PG_PASSWORD}
+      FLINK_CDC_PASSWORD: ${FLINK_CDC_PASSWORD}
+    ports: ["55432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../Documents/03_silver/ddl_silver.sql:/docker-entrypoint-initdb.d/01_ddl_silver.sql:ro
+      - ../Documents/04_gold/ddl_gold.sql:/docker-entrypoint-initdb.d/02_ddl_gold.sql:ro
+      - ../Documents/03_silver/ddl_views.sql:/docker-entrypoint-initdb.d/03_ddl_views.sql:ro
+      - ../db/roles.sql:/docker-entrypoint-initdb.d/04_roles.sql:ro
+      - ../db/cdc/enable_cdc.sql:/docker-entrypoint-initdb.d/05_enable_cdc.sql:ro
+      - ./init/06_passwords.sh:/docker-entrypoint-initdb.d/06_passwords.sh:ro
+      - ../db/seed/dev_master.sql:/docker-entrypoint-initdb.d/07_dev_master.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${PG_DATABASE}"]
+      interval: 5s
+      retries: 30
+
+  kafka:
+    profiles: ["sim"]
+    image: apache/kafka:4.3.1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:19092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_NUM_PARTITIONS: 6
+    ports: ["19092:19092"]
+
+  flink-volume-init:          # checkpoints/savepoints volume must belong to the flink user (uid 9999)
+    image: busybox:1.37
+    command: ["sh", "-c", "mkdir -p /flink-data/checkpoints /flink-data/savepoints && chown -R 9999:9999 /flink-data"]
+    volumes:
+      - flinkdata:/flink-data
+
+  jobmanager:
+    image: flink:2.3.0-java17
+    command: jobmanager
+    env_file: ${ENV_FILE:-../.env}
+    environment:
+      FLINK_PROPERTIES: &flinkprops |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        parallelism.default: 2
+        state.backend.type: rocksdb
+        execution.checkpointing.incremental: true
+        execution.checkpointing.dir: file:///flink-data/checkpoints
+        execution.checkpointing.savepoint-dir: file:///flink-data/savepoints
+        execution.checkpointing.externalized-checkpoint-retention: RETAIN_ON_CANCELLATION
+        execution.checkpointing.num-retained: 3
+        restart-strategy.type: exponential-delay
+        # whole-job restart from the last checkpoint: Flink CDC's split assigner does not survive a regional failover
+        jobmanager.execution.failover-strategy: full
+        jobmanager.memory.process.size: 1600m
+        taskmanager.memory.process.size: 2560m
+    ports: ["8081:8081"]
+    volumes:
+      - flinkdata:/flink-data
+      - ../flink/target:/opt/flink/usrlib:ro
+    depends_on:
+      timescaledb: { condition: service_healthy }
+      flink-volume-init: { condition: service_completed_successfully }
+
+  taskmanager:
+    image: flink:2.3.0-java17
+    command: taskmanager
+    env_file: ${ENV_FILE:-../.env}
+    environment:
+      FLINK_PROPERTIES: *flinkprops
+    volumes:
+      - flinkdata:/flink-data
+    depends_on: [jobmanager]
+
+  airflow:
+    image: apache/airflow:3.3.2-python3.12
+    command: standalone
+    env_file: ${ENV_FILE:-../.env}
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
+      PYTHONPATH: /opt/airflow/include
+      AIRFLOW_CONN_MASAKO_DB: postgresql://${AIRFLOW_PG_USER}:${AIRFLOW_PG_PASSWORD}@timescaledb:5432/${PG_DATABASE}?application_name=airflow-gold
+    ports: ["8080:8080"]
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/include:/opt/airflow/include
+    depends_on:
+      timescaledb: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  flinkdata:

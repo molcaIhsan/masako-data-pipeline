@@ -43,7 +43,7 @@ The live views and the gold tables have **identical columns**, so one payload ty
 | Rates | `availability`, `performance`, `quality`, `oee`, `teep` are **percent 0–100**, `numeric(10,3)`, and may exceed 100 (never clipped) |
 | Counts | In the product's **base unit** (`uom_id` / `uom_code` on the row). A work center row is only filled when all members share one base unit |
 | **NULL** | **Not known / not computable.** Render "—", **never 0**. 0 is a real measurement |
-| `data_status` | `ok` · `no_binding` (no KPI binding: show "not configured") · `no_cycle_time` (no standard: Performance/OEE not computable) · `partial` (some products had no standard / no conversion, or units differ) |
+| `data_status` | `ok` · `no_data` (no readings and no stops: show "no data", never 100%) · `no_binding` (no KPI binding: show "not configured") · `no_cycle_time` (no standard: Performance/OEE not computable) · `partial` (some products had no standard / no conversion, or units differ) |
 | `business_date` | The date the shift **started**: 07:00 → 07:00 local. Shift 3 belongs to the day it started |
 | `shift_no` / `shift_label` | Order of the shift in its business day (1, 2, 3) / `enterprise_shift.shift_label` |
 | Time zone | All instants are UTC (`timestamptz`); show them in `time_zone` (`site.timezone`) |
